@@ -46,7 +46,7 @@ public class VariantController : ControllerBase
         {
             variant.VariantId = "v" + rnd.Next(0, 100); //수정 필요;의미 구분 못함
             variant.VariantName = vrs[rnd.Next(0, vrs.Length)];
-            //그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
+            variant.DisplayPosition = db.Variants.Select(x => x.DisplayPosition).Max();//그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
         }
 
         v.VariantId = variant.VariantId;
