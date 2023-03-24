@@ -12,7 +12,7 @@ public class VariantController : ControllerBase
 
     public VariantController()
     {
-        db = new Wms2TestContext();
+        db = new Wms2TestContext()
     }
 
     [HttpGet]
@@ -46,7 +46,7 @@ public class VariantController : ControllerBase
         {
             variant.VariantId = "v" + rnd.Next(0, 100); //수정 필요;의미 구분 못함
             variant.VariantName = vrs[rnd.Next(0, vrs.Length)];
-            variant.DisplayPosition = db.Variants.; //그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
+            //그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
         }
 
         v.VariantId = variant.VariantId;
