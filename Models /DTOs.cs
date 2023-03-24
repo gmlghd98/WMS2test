@@ -62,3 +62,12 @@ public partial class ProductVariantDTO
 
     public int? DisplayPosition { get; set; }
 }
+
+public partial class ProductVariantComplexDTO
+{
+    public string VariantComplexId { get; set; } = null!;
+
+    public string? ProductVariantId { get; set; }
+
+    public string? VariantValueId { get; set; }
+}

@@ -33,19 +33,17 @@ public class ProductVariantController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ProductVariant>> PostProductVariant(ProductVariantDTO productvariant)
+    public async Task<ActionResult<String>> PostProductVariant(ProductVariantDTO productvariant)
     {
-
         var pv = await ProductVariantInsert(productvariant);
 
-        return Ok(pv);
+        return Ok("posted");
     }
 
     [HttpPut]
-    public async Task<ActionResult<ProductVariant>> PutProductVariant(int n)
+    public async Task<ActionResult<String>> PutProductVariant(int n)
     {
         var productvariant = new ProductVariantDTO();
-
         for (int i = 0; i < n; i++)
         {
             productvariant = new ProductVariantDTO();
@@ -55,9 +53,9 @@ public class ProductVariantController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ProductVariant>> DeleteProductVariant(String id)
+    public async Task<ActionResult<String>> DeleteProductVariant(String id)
     {
-            var pv = await db.ProductVariants.FindAsync(id);
+        var pv = await db.ProductVariants.FindAsync(id);
         if (pv == null)
             return NotFound();
 
@@ -73,28 +71,11 @@ public class ProductVariantController : ControllerBase
     protected async Task<ActionResult<ProductVariant>> ProductVariantInsert(ProductVariantDTO productvariant)
     {
         var pv = new ProductVariant();
-        var pds = db.Products.Select(x => x.ProductId).ToArray();
-        var vts = db.Variants.Select(x => x.VariantId).ToArray();
 
         var chkRandomCase = string.IsNullOrEmpty(productvariant.VariantId) && string.IsNullOrEmpty(productvariant.ProductId);
         if (chkRandomCase)
         {
-            Random rnd = new Random(DateTime.UtcNow.Microsecond);
-
-            productvariant.ProductId = pds[rnd.Next(0, pds.Length)];
-            productvariant.VariantId = vts[rnd.Next(0, vts.Length)];
-
-            String tempId = productvariant.ProductId + "_" + productvariant.VariantId;
-            bool chkDupleCase = true;
-            while (chkDupleCase) // 만들어진 ProductId와 VariantId를 토대로 ProductVariantId를 만든다.
-            {
-                // 수정 필요;중복 코드 발생
-                chkDupleCase = (db.ProductVariants.Find(tempId) != null) ? true : false;    
-                productvariant.ProductId = pds[rnd.Next(0, pds.Length)];    //둘 중 하나만 새로 받아서 id 만들고 싶은데....
-                productvariant.VariantId = vts[rnd.Next(0, vts.Length)];
-                tempId = productvariant.ProductId + "_" + productvariant.VariantId;
-            }
-            productvariant.ProductVariantId = tempId;
+            productvariant = VariantChoice(productvariant);
         }
         pv.ProductVariantId = productvariant.ProductVariantId;
         pv.ProductId = productvariant.ProductId;
@@ -103,5 +84,23 @@ public class ProductVariantController : ControllerBase
         db.ProductVariants.Add(pv);
         await db.SaveChangesAsync();
         return pv;
+    }
+
+    protected ProductVariantDTO VariantChoice(ProductVariantDTO productVariant)
+    {
+        // var pds = db.Products.Select(x => x.ProductId).ToArray();
+        // var vrs = db.Variants.Select(x => x.VariantId).ToArray();
+
+        // Random rnd = new Random(DateTime.UtcNow.Microsecond);
+
+        // productVariant.ProductId = pds[rnd.Next(0, 30)];
+        // String ChosenVariant;
+        
+        // do
+        // {
+        //     ChosenVariant= vrs[rnd.Next(0, vrs.Length)];
+        // }while(db.ProductVariants.Find(ChosenVariant) == null);
+        // id는 제일 마지막에 product와 variant로 조합해서 만들 것!
+        return productVariant;
     }
 }
