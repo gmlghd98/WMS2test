@@ -39,19 +39,18 @@ public class VariantController : ControllerBase
         //shape, row, height, depth, color, weight, power, resolution, waist, material, gender, 
         string[] vrs = {"Shape", "Row", "Depth", "Resolution", "Waist", "Material", "Gender", "Storage"};
         Random rnd = new Random();
-        string[] temp;
 
         var chkrandomcase = string.IsNullOrEmpty(variant.VariantName) && (variant.DisplayPosition == 0);
         if(chkrandomcase)
         {
             variant.VariantId = "v" + rnd.Next(0, 100); //수정 필요;의미 구분 못함
             variant.VariantName = vrs[rnd.Next(0, vrs.Length)];
-            variant.DisplayPosition = db.Variants.Select(x => x.DisplayPosition).Max();//그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
+            variant.DisplayPosition = db.Variants.Select(x => x.DisplayPosition).Max() + 1;//그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
         }
 
         v.VariantId = variant.VariantId;
         v.VariantName = variant.VariantName;
-        v.DisplayPosition = variant.DisplayPosition;
+        v.DisplayPosition = variant.DisplayPosition; //이게 사용자힌ㅌ[ 받는게 맞는건가...?
 
         db.Variants.Add(v);
         await db.SaveChangesAsync();
