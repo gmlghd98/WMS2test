@@ -11,7 +11,7 @@ namespace Controllers;
 [ApiController]
 public class ProductController : ControllerBase
 {
-    private readonly Wms2TestContext db;
+    private readonly Wms2TestContext db; //test
 
     public ProductController()
     {
