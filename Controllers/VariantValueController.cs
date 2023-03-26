@@ -8,12 +8,10 @@ namespace Controllers;
 [ApiController]
 public class VariantValueController : ControllerBase
 {
-    //private readonly Wmsdbv2IsaacContext db;
     private readonly Wms2TestContext db;
 
     public VariantValueController()
     {
-        //db = new Wmsdbv2IsaacContext();
         db = new Wms2TestContext();
     }
 
@@ -26,82 +24,54 @@ public class VariantValueController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<VariantValue>> GetVariantValue(String id)
     {
-        var t = await db.VariantValues.FindAsync(id);
-        if (t == null)
+        var v = await db.VariantValues.FindAsync(id);
+
+        if (v == null)
             return NotFound();
-        return t;
+
+        return Ok(v);
     }
 
     [HttpPost]
-    public async Task<ActionResult<VariantValue>> PostVariantValue(VariantValueDTO variantvalue)
+    public async Task<ActionResult<String>> PostVariant(VariantValueDTO variant)
     {
-        var vv = await VariantValueInsert(1, variantvalue);
+        var v = await VariantValueInsert(variant);
 
-        return Ok(vv);
+        return Ok("posted");
     }
 
-    //[HttpPut]
-
-    [HttpDelete("{id}")]
-    public async Task<ActionResult<VariantValue>> DeleteTransaction(String id)
+    [HttpPut]
+    public async Task<ActionResult<String>> PutVariant(int n)
     {
-        var t = await db.VariantValues.FindAsync(id);
-        if (t == null)
+        var variant = new VariantValueDTO();
+
+        await VariantValueInsert(variant);
+
+        return Ok("posted");
+    }
+
+    // [HttpPut]
+    [HttpDelete]
+    public async Task<ActionResult<string>> DeleteVariant(String id)
+    {
+        var v = db.Variants.Find(id);
+
+        if (v == null)
             return NotFound();
 
-        db.VariantValues.Remove(t);
-        db.SaveChanges();
+        db.Variants.Remove(v);
+        await db.SaveChangesAsync();
 
-        //return NoContent();
-        return BadRequest("deleted");
+        return Ok("deleted");
     }
 
 
-    protected async Task<ActionResult<VariantValue>> VariantValueInsert(int flag, VariantValueDTO variantvalue)
+    protected async Task<ActionResult<VariantValue>> VariantValueInsert(VariantValueDTO variant)
     {
-        var vv = new VariantValue();
-        var vrs = db.Variants.Select(x => x.VariantId).ToArray();
+        var v = new VariantValue();
 
-        // 나중에 Attach로 구현하기
-        vv.VariantValueId = variantvalue.VariantValueId;
-        vv.VariantId = variantvalue.VariantId;
-        vv.Value = variantvalue.Value;
-        vv.DisplayPosition = variantvalue.DisplayPosition;
-
-        // VariantValue도 여러 개....만들까...?
-        // switch (flag)
-        // {
-        //     case 0:
-        //         {
-        //             Random rnd = new Random(DateTime.UtcNow.Microsecond);
-        //             String tempId = "vv" + rnd.Next(); 
-        //             if (db.VariantValues.Find(tempId) != null)
-        //                 goto case 0; //성능 저하되지 않을까?
-
-        //             variantvalue.VariantValueId = tempId;
-        //             variantvalue.VariantId = vrs[rnd.Next(0, vrs.Length)];
-        //             variantvalue.Value = rnd.Next();
-        //             variantvalue.DisplayPosition = ......
-
-        //             goto default;
-        //         }
-        //     case 1:
-        //         {
-        //             goto default;
-        //         }
-        //     default:
-        //         {
-        //             vv.VariantValueId = variantvalue.VariantValueId;
-        //             vv.VariantId = variantvalue.VariantId;
-        //             vv.Value = variantvalue.Value;
-        //             vv.DisplayPosition = variantvalue.DisplayPosition;
-
-        //             break;
-        //         }
-        // }
-
-        db.VariantValues.Add(vv);
+        db.VariantValues.Add(v);
         await db.SaveChangesAsync();
-        return vv;
+        return v;
     }
 }

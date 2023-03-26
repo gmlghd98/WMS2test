@@ -32,59 +32,23 @@ public class VariantController : ControllerBase
         return Ok(v);
     }
 
-    protected async Task<ActionResult<Variant>> VariantInsert(int flag, VariantDTO variant)
+    [HttpPost]
+    public async Task<ActionResult<String>> PostVariant(VariantDTO variant)
     {
-        var v = new Variant();
+        var v = await VariantInsert(variant);
 
-        // 나중에 Attach로 구현하기
-        v.VariantId = variant.VariantId;
-        v.VariantName = variant.VariantName;
-        v.DisplayPosition = variant.DisplayPosition;
-
-        // switch (flag)
-        // {
-        //     case 0:
-        //         {
-        //             Random rnd = new Random(DateTime.UtcNow.Microsecond);
-
-        //             String tempId = "" + rnd.Next();
-        //             if (db.Variants.Find(tempId) != null)
-        //                 goto case 0; //성능 저하되지 않을까?
-
-        //             variant.VariantId = tempId;
-                    
-
-        //             goto default;
-        //         }
-        //     case 1:
-        //         {
-        //             goto default;
-        //         }
-        //     default:
-        //         {
-        //             v.VariantId = variant.VariantId;
-        //             v.VariantName = variant.VariantName;
-        //             v.DisplayPosition = variant.DisplayPosition;
-
-        //             break;
-        //         }
-        // }
-
-        db.Variants.Add(v);
-        await db.SaveChangesAsync();
-        return v;
+        return Ok("posted");
     }
 
-    [HttpPost]
-    public async Task<ActionResult<Variant>> PostVariant(VariantDTO variant)
+    [HttpPut]
+    public async Task<ActionResult<String>> PutVariant(int n)
     {
-        var v = await VariantInsert(1, variant);
+        var variant = new VariantDTO();
 
-        return Ok(v);
+        return Ok("posted");
     }
 
     // [HttpPut]
-
     [HttpDelete]
     public async Task<ActionResult<Variant>> DeleteVariant(String id)
     {
@@ -97,5 +61,42 @@ public class VariantController : ControllerBase
         await db.SaveChangesAsync();
 
         return NoContent();
+    }
+
+
+    protected async Task<ActionResult<Variant>> VariantInsert(VariantDTO variant)
+    {
+        var v = new Variant();
+        //생각한다고 하면 끝도 없는데;;
+        //shape, row, height, depth, color, weight, power, resolution, waist, material, gender, 
+        string[] vrs = { "Shape", "Row", "Depth", "Resolution", "Waist", "Material", "Gender", "Storage" };
+        Random rnd = new Random();
+        String vrchoice;
+        String vrid;
+        char[] vrtemp;
+
+        var chkrandomcase = string.IsNullOrEmpty(variant.VariantName) && (variant.DisplayPosition == 0);
+        if (chkrandomcase)
+        {
+            //variant.VariantId = "v" + rnd.Next(0, 100); //수정 필요;의미 구분 못함
+            // variant.VariantName = vrs[rnd.Next(0, vrs.Length)];
+            do
+            {
+                vrchoice = vrs[rnd.Next(0, vrs.Length)];
+                vrtemp = vrchoice.ToCharArray();
+                vrid = new string(vrtemp, 0, 3).ToUpper();
+            } while (db.Variants.Find(vrid) == null);
+            variant.VariantId = vrid;
+            variant.VariantName = vrchoice;
+            variant.DisplayPosition = db.Variants.Select(x => x.DisplayPosition).Max() + 1;//그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
+        }
+
+        v.VariantId = variant.VariantId;
+        v.VariantName = variant.VariantName;
+        v.DisplayPosition = variant.DisplayPosition; //이게 사용자한테 받는게 맞는건가...?
+
+        db.Variants.Add(v);
+        await db.SaveChangesAsync();
+        return v;
     }
 }

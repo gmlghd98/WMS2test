@@ -11,7 +11,7 @@ namespace Controllers;
 [ApiController]
 public class ProductController : ControllerBase
 {
-    private readonly Wms2TestContext db; //test
+    private readonly Wms2TestContext db;
 
     public ProductController()
     {
@@ -74,7 +74,8 @@ public class ProductController : ControllerBase
         var item = new Product();
 
         string[] names = GetArray(); // 수정 필요
-        string[] categorys = new string[] { "BF", "CTH", "ELT", "FN", "MT", "P_BLY", "PK", "SST", "T" };
+        //string[] categorys= new string[] { "BF", "CTH", "ELT", "FN", "MT", "P_BLY", "PK", "SST", "T" };
+        string[] categorys = db.ProductCategories.Select(x => x.ProductCategoryId).ToArray();
 
         var chkRandomCase = string.IsNullOrEmpty(product.ProductName) && string.IsNullOrEmpty(product.ItemCode);
         if (chkRandomCase)
