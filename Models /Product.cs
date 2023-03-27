@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Models;
 
@@ -20,6 +21,6 @@ public partial class Product
     public virtual ICollection<Inventory> Inventories { get; } = new List<Inventory>();
 
     public virtual ProductCategory? ProductCategory { get; set; }
-
+    //[JsonIgnore]
     public virtual ICollection<ProductVariant> ProductVariants { get; } = new List<ProductVariant>();
 }

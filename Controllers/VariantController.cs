@@ -18,13 +18,13 @@ public class VariantController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Variant>>> GetVariants()
     {
-        return await db.Variants.ToListAsync();
+        return await db.Variants.Include(x => x.ProductVariants).ThenInclude(y => y.Product).ToListAsync();
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Variant>> GetVariant(String id)
     {
-        var v = await db.Variants.FindAsync(id);
+        var v = await db.Variants.Include(x => x.ProductVariants).ThenInclude(x => x.Product).FirstOrDefaultAsync(x => x.VariantId == id);
 
         if (v == null)
             return NotFound();
@@ -36,7 +36,6 @@ public class VariantController : ControllerBase
     public ActionResult<String> PostVariant(VariantDTO variant)
     {
         var v = VariantInsert(variant);
-
         return Ok("posted");
     }
 
