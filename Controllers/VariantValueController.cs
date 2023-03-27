@@ -24,18 +24,18 @@ public class VariantValueController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<VariantValue>> GetVariantValue(String id)
     {
-        var v = await db.VariantValues.FindAsync(id);
+        var vv = await db.VariantValues.FindAsync(id);
 
-        if (v == null)
+        if (vv == null)
             return NotFound();
 
-        return Ok(v);
+        return Ok(vv);
     }
 
     [HttpPost]
-    public async Task<ActionResult<String>> PostVariant(VariantValueDTO variant)
+    public async Task<ActionResult<String>> PostVariant(VariantValueDTO variantvalue)
     {
-        var v = await VariantValueInsert(variant);
+        var vv = await VariantValueInsert(variantvalue);
 
         return Ok("posted");
     }
@@ -43,9 +43,9 @@ public class VariantValueController : ControllerBase
     [HttpPut]
     public async Task<ActionResult<String>> PutVariant(int n)
     {
-        var variant = new VariantValueDTO();
+        var variantvalue = new VariantValueDTO();
 
-        await VariantValueInsert(variant);
+        await VariantValueInsert(variantvalue);
 
         return Ok("posted");
     }
@@ -54,19 +54,19 @@ public class VariantValueController : ControllerBase
     [HttpDelete]
     public async Task<ActionResult<string>> DeleteVariant(String id)
     {
-        var v = db.Variants.Find(id);
+        var v = db.VariantValues.Find(id);
 
         if (v == null)
             return NotFound();
 
-        db.Variants.Remove(v);
+        db.VariantValues.Remove(v);
         await db.SaveChangesAsync();
 
         return Ok("deleted");
     }
 
 
-    protected async Task<ActionResult<VariantValue>> VariantValueInsert(VariantValueDTO variant)
+    protected async Task<ActionResult<VariantValue>> VariantValueInsert(VariantValueDTO variantvalue)
     {
         var v = new VariantValue();
 
