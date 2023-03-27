@@ -38,7 +38,7 @@ public class ProductController : ControllerBase
     public async Task<ActionResult<Product>> PostProduct(ProductDTO product)
     {
         var item = await ProductInsert(product);
-
+        //수정필요!
         return Ok(item);
     }
 
