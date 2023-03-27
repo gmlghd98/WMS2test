@@ -21,6 +21,6 @@ public partial class Product
     public virtual ICollection<Inventory> Inventories { get; } = new List<Inventory>();
 
     public virtual ProductCategory? ProductCategory { get; set; }
-    //[JsonIgnore]
+    [JsonIgnore]
     public virtual ICollection<ProductVariant> ProductVariants { get; } = new List<ProductVariant>();
 }
