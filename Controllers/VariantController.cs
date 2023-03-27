@@ -12,7 +12,7 @@ public class VariantController : ControllerBase
 
     public VariantController()
     {
-        db = new Wms2TestContext()
+        db = new Wms2TestContext();
     }
 
     [HttpGet]
@@ -32,51 +32,24 @@ public class VariantController : ControllerBase
         return Ok(v);
     }
 
-    protected async Task<ActionResult<Variant>> VariantInsert(VariantDTO variant)
-    {
-        var v = new Variant();
-        //생각한다고 하면 끝도 없는데;;
-        //shape, row, height, depth, color, weight, power, resolution, waist, material, gender, 
-        string[] vrs = {"Shape", "Row", "Depth", "Resolution", "Waist", "Material", "Gender", "Storage"};
-        Random rnd = new Random();
-
-        var chkrandomcase = string.IsNullOrEmpty(variant.VariantName) && (variant.DisplayPosition == 0);
-        if(chkrandomcase)
-        {
-            variant.VariantId = "v" + rnd.Next(0, 100); //수정 필요;의미 구분 못함
-            variant.VariantName = vrs[rnd.Next(0, vrs.Length)];
-            variant.DisplayPosition = db.Variants.Select(x => x.DisplayPosition).Max() + 1;//그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
-        }
-
-        v.VariantId = variant.VariantId;
-        v.VariantName = variant.VariantName;
-        v.DisplayPosition = variant.DisplayPosition; //이게 사용자힌ㅌ[ 받는게 맞는건가...?
-
-        db.Variants.Add(v);
-        await db.SaveChangesAsync();
-        return v;
-    }
-
     [HttpPost]
-    public async Task<ActionResult<String>> PostVariant(VariantDTO variant)
+    public ActionResult<String> PostVariant(VariantDTO variant)
     {
-        var v = await VariantInsert(variant);
+        var v = VariantInsert(variant);
 
         return Ok("posted");
     }
 
     [HttpPut]
-    public async Task<ActionResult<String>> PutVariant(int n)
+    public ActionResult<String> PutVariant(int n)
     {
         var variant = new VariantDTO();
-
         return Ok("posted");
     }
 
     // [HttpPut]
-
     [HttpDelete]
-    public async Task<ActionResult<Variant>> DeleteVariant(String id)
+    public async Task<ActionResult<String>> DeleteVariant(String id)
     {
         var v = db.Variants.Find(id);
 
@@ -86,6 +59,43 @@ public class VariantController : ControllerBase
         db.Variants.Remove(v);
         await db.SaveChangesAsync();
 
-        return NoContent();
+        return Ok("deleted");
+    }
+
+
+    protected async Task<ActionResult<Variant>> VariantInsert(VariantDTO variant)
+    {
+        var v = new Variant();
+        //생각한다고 하면 끝도 없는데;;
+        //shape, row, height, depth, color, weight, power, resolution, waist, material, gender,etc 
+        string[] vrs = {"Shape", "Row", "Depth", "Resolution", "Waist", "Material", "Storage"};
+        Random rnd = new Random();
+        String vrchoice;
+        String vrid;
+        char[] vrtemp;
+
+        var chkrandomcase = string.IsNullOrEmpty(variant.VariantName) && (variant.DisplayPosition == 0);
+        if (chkrandomcase)
+        {
+            //variant.VariantId = "v" + rnd.Next(0, 100); //수정 필요;의미 구분 못함
+            // variant.VariantName = vrs[rnd.Next(0, vrs.Length)];
+            do
+            {
+                vrchoice = vrs[rnd.Next(0, vrs.Length)];
+                vrtemp = vrchoice.ToCharArray();
+                vrid = new string(vrtemp, 0, 3).ToUpper();
+            } while (db.Variants.Find(vrid) == null);
+            variant.VariantId = vrid;
+            variant.VariantName = vrchoice;
+            variant.DisplayPosition = db.Variants.Select(x => x.DisplayPosition).Max() + 1;//그냥 우선 가장 마지막 variant보다 1 더해서 DisplayPosition 잡기 
+        }
+
+        v.VariantId = variant.VariantId;
+        v.VariantName = variant.VariantName;
+        v.DisplayPosition = variant.DisplayPosition; //이게 사용자한테 받는게 맞는건가...?
+
+        db.Variants.Add(v);
+        await db.SaveChangesAsync();
+        return v;
     }
 }

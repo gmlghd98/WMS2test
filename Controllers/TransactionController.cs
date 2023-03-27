@@ -25,7 +25,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<String>> GetTransaction(String id) //이거를 productID를 받는 걸 전제로 해야할까? 
+    public ActionResult<String> GetTransaction(String id) //이거를 productID를 받는 걸 전제로 해야할까? 
     {
         //var CurrentQty = Calculator(id);
         int sum = Sum(id);
@@ -41,7 +41,7 @@ public class TransactionController : ControllerBase
 
 
     [HttpPost]
-    public async Task<ActionResult<Transaction>> PostTransaction(TransactionDTO transaction)
+    public async Task<ActionResult<String>> PostTransaction(TransactionDTO transaction)
     {
         await TransactionCreate(transaction);
         // if()
@@ -49,8 +49,8 @@ public class TransactionController : ControllerBase
         return Ok("posted");
     }
 
-    [HttpPut] 
-    public async Task<ActionResult<Transaction>> PutTransaction(int Times)
+    [HttpPut]
+    public async Task<ActionResult<String>> PutTransaction(int Times)
     {
         var transaction = new TransactionDTO();
 
@@ -63,7 +63,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<Transaction>> DeleteTransaction(String id)
+    public async Task<ActionResult<String>> DeleteTransaction(String id)
     {
         var t = await db.Transactions.FindAsync(id);
         if (t == null)
@@ -77,13 +77,12 @@ public class TransactionController : ControllerBase
     }
 
 
-
-
     protected async Task<ActionResult<Transaction>> TransactionCreate(TransactionDTO transaction)
     {
         var t = new Transaction();
-        var pds = db.Products.Select(x => x.ProductId).ToArray();
-        string[] Type = new string[] {"OUT"};
+        //var pds = db.Products.Select(x => x.ProductId).ToArray();
+        var ivs = db.Inventories.Select(x => x.InventoryId).ToArray();
+        string[] Type = new string[] { "OUT" };
         //string[] Type = new string[] { "IN", "OUT" };
 
         var chkRandomCase = string.IsNullOrEmpty(transaction.TransactionType) && string.IsNullOrEmpty(transaction.ProductId);
@@ -91,29 +90,39 @@ public class TransactionController : ControllerBase
 
         if (chkRandomCase)
         {   // put을 할 때, Random의 범위를 지정할 수 있게 해보자!!!
-            transaction.ProductId = pds[rnd.Next(0, 30)]; //(pds.Length - 950)
+            //transaction.ProductId = pds[rnd.Next(0, 30)]; //(pds.Length - 950)
+            transaction.InventoryId = ivs[rnd.Next(0, ivs.Length)]; //(pds.Length - 950)
             bool chkDupleCase;
             String tempId;
             do
             {
                 tempId = "T" + rnd.Next(1, 1000);
                 chkDupleCase = (db.Transactions.Find(tempId) != null) ? true : false;
-            }while (chkDupleCase);
+            } while (chkDupleCase);
             transaction.TransactionId = tempId;
             transaction.ProductQty = rnd.Next(1, 50);
             transaction.TransactionType = Type[rnd.Next(0, Type.Length)];
         }
         t.TransactionId = transaction.TransactionId;
-        t.ProductId = transaction.ProductId;
+        //t.ProductId = transaction.ProductId;
+        t.InventoryId = transaction.InventoryId;
         t.ProductQty = transaction.ProductQty;
         t.TransactionType = transaction.TransactionType;
 
-        if ((t.TransactionType == "OUT" && t.ProductQty <= Calculator(t.ProductId)) || (t.TransactionType == "IN"))
+        //if ((t.TransactionType == "OUT" && t.ProductQty <= Calculator(t.ProductId ?? "")) || (t.TransactionType == "IN"))
+        if ((t.TransactionType == "OUT" && t.ProductQty <= Sum(t.InventoryId ?? "")) || (t.TransactionType == "IN"))
         {
             db.Transactions.Add(t);
+            db.SaveChanges();
+
+            var i = db.Inventories.Find(t.InventoryId); // 현재 inventory 재고 최산화
+            if (i == null)
+                return NoContent();
+            i.CurrentQty = Sum(i.InventoryId);
+
             await db.SaveChangesAsync();
         }
-        
+
         return Ok(t);
     }
 
@@ -123,24 +132,24 @@ public class TransactionController : ControllerBase
         // var OutTs = db.Transactions.Where(x=>x.ProductId == id && x.TransactionType == "Out").Sum(x=>x.ProductQty);
         // var trxsum = ((InTs - OutTs) ?? 0);
         var qty = db.Transactions
-            .Where(x=>x.ProductId == id)
-            .Sum(x=>x.TransactionType == "IN" ? (x.ProductQty ?? 0) : (x.ProductQty ?? 0 * -1));
+            //.Where(x=>x.ProductId == id)
+            .Where(x => x.InventoryId == id)
+            .Sum(x => x.TransactionType == "IN" ? (x.ProductQty ?? 0) : ((x.ProductQty ?? 0) * -1));
         return qty;
     }
     protected int Calculator(String id)
     {
         //In인 것들과 Out인 것들을 서로 다른 배열로 분리해서 해야할까..?
-        var ts = db.Transactions.Where(x => x.ProductId == id).ToArray();
+        //var ts = db.Transactions.Where(x => x.ProductId == id).ToArray();
+        var ts = db.Transactions.Where(x => x.InventoryId == id).ToArray();
         int CurrentQty = 0;
-
-
 
         for (int i = 0; i < ts.Length; i++)
         {
             if (ts[i].ProductQty == null)
                 continue;   //null인 경우에는 계산에 포함 x 
             else
-                CurrentQty += ts[i].TransactionType == "IN" ? (int)ts[i].ProductQty : ((int)ts[i].ProductQty * (-1));
+                CurrentQty += ts[i].TransactionType == "IN" ? (ts[i].ProductQty ?? 0) : (ts[i].ProductQty * (-1) ?? 0);
         }
 
         if (CurrentQty < 0)

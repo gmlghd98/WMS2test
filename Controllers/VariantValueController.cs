@@ -1,75 +1,82 @@
-// using Microsoft.AspNetCore.Mvc;
-// using Microsoft.EntityFrameworkCore;
-// using Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Models;
 
-// namespace Controllers;
+namespace Controllers;
 
-// [Route("api/[controller]")]
-// [ApiController]
-// public class VariantValueController : ControllerBase
-// {
-//     //private readonly Wmsdbv2IsaacContext db;
-//     private readonly Wms2TestContext db;
+[Route("api/[controller]")]
+[ApiController]
+public class VariantValueController : ControllerBase
+{
+    private readonly Wms2TestContext db;
 
-//     public VariantValueController()
-//     {
-//         //db = new Wmsdbv2IsaacContext();
-//         db = new Wms2TestContext();
-//     }
+    public VariantValueController()
+    {
+        db = new Wms2TestContext();
+    }
 
-//     [HttpGet]
-//     public async Task<ActionResult<IEnumerable<VariantValue>>> GetVariantValues()
-//     {
-//         return await db.VariantValues.ToListAsync();
-//     }
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<VariantValue>>> GetVariantValues()
+    {
+        return await db.VariantValues.ToListAsync();
+    }
 
-//     [HttpGet("{id}")]
-//     public async Task<ActionResult<VariantValue>> GetVariantValue(String id)
-//     {
-//         var t = await db.VariantValues.FindAsync(id);
-//         if (t == null)
-//             return NotFound();
-//         return t;
-//     }
+    [HttpGet("{id}")]
+    public async Task<ActionResult<VariantValue>> GetVariantValue(String id)
+    {
+        var vv = await db.VariantValues.FindAsync(id);
 
-//     [HttpPost]
-//     public async Task<ActionResult<VariantValue>> PostVariantValue(VariantValueDTO variantvalue)
-//     {
-//         var vv = await VariantValueInsert(1, variantvalue);
+        if (vv == null)
+            return NotFound();
 
-//         return Ok(vv);
-//     }
+        return Ok(vv);
+    }
 
-//     //[HttpPut]
+    [HttpPost]
+    public async Task<ActionResult<String>> PostVariant(VariantValueDTO variantvalue)
+    {
+        var vv = await VariantValueInsert(variantvalue);
 
-//     [HttpDelete("{id}")]
-//     public async Task<ActionResult<VariantValue>> DeleteTransaction(String id)
-//     {
-//         var t = await db.VariantValues.FindAsync(id);
-//         if (t == null)
-//             return NotFound();
+        return Ok("posted");
+    }
 
-//         db.VariantValues.Remove(t);
-//         db.SaveChanges();
+    [HttpPut]
+    public async Task<ActionResult<String>> PutVariant(int n)
+    {
+        var variantvalue = new VariantValueDTO();
 
-//         //return NoContent();
-//         return BadRequest("deleted");
-//     }
+        await VariantValueInsert(variantvalue);
+
+        return Ok("posted");
+    }
+
+    // [HttpPut]
+    [HttpDelete]
+    public async Task<ActionResult<string>> DeleteVariant(String id)
+    {
+        var v = db.VariantValues.Find(id);
+
+        if (v == null)
+            return NotFound();
+
+        db.VariantValues.Remove(v);
+        await db.SaveChangesAsync();
+
+        return Ok("deleted");
+    }
 
 
-//     protected async Task<ActionResult<VariantValue>> VariantValueInsert(int flag, VariantValueDTO variantvalue)
-//     {
-//         var vv = new VariantValue();
-//         var vrs = db.Variants.Select(x => x.VariantId).ToArray();
+    protected async Task<ActionResult<VariantValue>> VariantValueInsert(VariantValueDTO variantvalue)
+    {
+        var v = new VariantValue();
+        int[] exampleData = new int[] {10, 20, 30};
 
-//         // 나중에 Attach로 구현하기
-//         vv.VariantValueId = variantvalue.VariantValueId;
-//         vv.VariantId = variantvalue.VariantId;
-//         vv.Value = variantvalue.Value;
-//         vv.DisplayPosition = variantvalue.DisplayPosition;
-
-//         db.VariantValues.Add(vv);
-//         await db.SaveChangesAsync();
-//         return vv;
-//     }
-// }
+        v.VariantValueId = variantvalue.VariantValueId;
+        v.VariantId = variantvalue.VariantId;
+        v.Value = variantvalue.Value;
+        
+        db.VariantValues.Add(v);
+        await db.SaveChangesAsync();
+        return v;
+    }
+}

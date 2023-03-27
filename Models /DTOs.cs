@@ -71,3 +71,17 @@ public partial class ProductVariantComplexDTO
 
     public string? VariantValueId { get; set; }
 }
+
+public partial class InventoryDTO
+{
+    public string InventoryId { get; set; } = null!;
+
+    public string? Sku { get; set; }
+
+    public string? Barcode { get; set; }
+
+    public int? CurrentQty { get; set; }
+
+    public string? ProductId { get; set; }
+    public ProductVariant?[]?  pvariants {get;set;}
+}

@@ -33,27 +33,27 @@ public class ProductVariantController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<String>> PostProductVariant(ProductVariantDTO productvariant)
+    public ActionResult<String> PostProductVariant(ProductVariantDTO productvariant)
     {
-        var pv = await ProductVariantInsert(productvariant);
-
+        ProductVariantInsert(productvariant);
         return Ok("posted");
     }
 
     [HttpPut]
-    public async Task<ActionResult<String>> PutProductVariant(int n)
+    public ActionResult<String> PutProductVariant(int n)
     {
         var productvariant = new ProductVariantDTO();
+
         for (int i = 0; i < n; i++)
         {
             productvariant = new ProductVariantDTO();
-            await ProductVariantInsert(productvariant);
+            ProductVariantInsert(productvariant);
         } // 수정 필요;쓸데없이 t를 만들어서 넘김
         return Ok("posted");
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<String>> DeleteProductVariant(String id)
+    public async Task<ActionResult<ProductVariant>> DeleteProductVariant(String id)
     {
         var pv = await db.ProductVariants.FindAsync(id);
         if (pv == null)
@@ -68,39 +68,53 @@ public class ProductVariantController : ControllerBase
 
 
 
-    protected async Task<ActionResult<ProductVariant>> ProductVariantInsert(ProductVariantDTO productvariant)
+    protected void ProductVariantInsert(ProductVariantDTO productvariant)
     {
         var pv = new ProductVariant();
 
         var chkRandomCase = string.IsNullOrEmpty(productvariant.VariantId) && string.IsNullOrEmpty(productvariant.ProductId);
         if (chkRandomCase)
         {
-            productvariant = VariantChoice(productvariant);
+            productvariant = MakeRandom(productvariant);
+            return ;
         }
+        InsertData(productvariant);
+    }
+
+    protected void InsertData(ProductVariantDTO productvariant)
+    {
+        var pv = new ProductVariant();
         pv.ProductVariantId = productvariant.ProductVariantId;
         pv.ProductId = productvariant.ProductId;
         pv.VariantId = productvariant.VariantId;
 
+        //add하고 save까지 해버리자
         db.ProductVariants.Add(pv);
-        await db.SaveChangesAsync();
-        return pv;
+        db.SaveChanges();
     }
-
-    protected ProductVariantDTO VariantChoice(ProductVariantDTO productVariant)
+    protected ProductVariantDTO MakeRandom(ProductVariantDTO productvariant)
     {
-        // var pds = db.Products.Select(x => x.ProductId).ToArray();
-        // var vrs = db.Variants.Select(x => x.VariantId).ToArray();
+        //variant 3개 골라서, Variant 고를 때마다 전체적으로 만들고 Insert 호출
+        Random rnd = new Random();
+        string[] pds = db.Products.Select(x => x.ProductId).ToArray();
+        string[] vrs = db.Variants.Select(x => x.VariantId).ToArray();
+        int Insert3times = 1;
 
-        // Random rnd = new Random(DateTime.UtcNow.Microsecond);
-
-        // productVariant.ProductId = pds[rnd.Next(0, 30)];
-        // String ChosenVariant;
-        
-        // do
-        // {
-        //     ChosenVariant= vrs[rnd.Next(0, vrs.Length)];
-        // }while(db.ProductVariants.Find(ChosenVariant) == null);
-        // id는 제일 마지막에 product와 variant로 조합해서 만들 것!
-        return productVariant;
+        productvariant.ProductId = pds[rnd.Next(0, pds.Length)];
+        while(Insert3times < 4)
+        {
+            do
+            {
+                productvariant.VariantId = vrs[rnd.Next(0, vrs.Length)];
+            } while (db.ProductVariants.Where(x => x.VariantId == productvariant.VariantId) == null);
+            String tempId = productvariant.ProductId + "_" + productvariant.VariantId;
+            if(db.ProductVariants.Find(tempId) != null)
+                continue;
+            productvariant.ProductVariantId = tempId;
+            
+            InsertData(productvariant);
+            Insert3times++;
+        }
+        return productvariant;
     }
 }
