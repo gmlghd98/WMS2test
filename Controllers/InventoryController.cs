@@ -20,7 +20,7 @@ public class InventoryController : ControllerBase
     public async Task<ActionResult<string>> GetInventories()
     {
         var _ivsql = db.Inventories.AsQueryable();
-        _ivsql = _ivsql.Where(x=>x.InventoryComplexes.Count(s=>
+        _ivsql = _ivsql.Where(x => x.InventoryComplexes.Count(s =>
             s.VariantComplex.ProductVariant.VariantId == "CT"
             && s.VariantComplex.VariantValueId == "3IN"
         ) > 0);
@@ -28,61 +28,59 @@ public class InventoryController : ControllerBase
         var iv = await _ivsql
             .Include(x => x.InventoryComplexes)
             .ThenInclude(x => x.VariantComplex.ProductVariant.Variant)
-            .Include(x=>x.InventoryComplexes)
-            .ThenInclude(x=>x.VariantComplex.VariantValue)
-            .Include(x=>x.InventoryComplexes)
-            .ThenInclude(x=>x.VariantComplex.ProductVariant.Product)
+            .Include(x => x.InventoryComplexes)
+            .ThenInclude(x => x.VariantComplex.VariantValue)
+            .Include(x => x.InventoryComplexes)
+            .ThenInclude(x => x.VariantComplex.ProductVariant.Product)
             .ToListAsync();
 
-       var data = await _ivsql.Select(x=>new InventoryDTO{
-        InventoryId = x.InventoryId,
-        ProductId = x.ProductId,
-        Barcode = x.Barcode,
-        Sku = x.Sku,
-        CurrentQty = x.CurrentQty,
-        Variants = x.InventoryComplexes.Select(s => new VariantInfo {
-            VariantId = s.VariantComplex.ProductVariant.VariantId,
-            VariantName = s.VariantComplex.ProductVariant.Variant.VariantName,
-            VariantValueId = s.VariantComplex.VariantValueId,
-            Value = s.VariantComplex.VariantValue.Value
-        })
-       }).ToArrayAsync();
+        var data = await _ivsql.Select(x => new InventoryDTO
+        {
+            InventoryId = x.InventoryId,
+            ProductId = x.ProductId,
+            Barcode = x.Barcode,
+            Sku = x.Sku,
+            CurrentQty = x.CurrentQty,
+            Variants = x.InventoryComplexes.Select(s => new VariantInfo
+            {
+                VariantId = s.VariantComplex.ProductVariant.VariantId,
+                VariantName = s.VariantComplex.ProductVariant.Variant.VariantName,
+                VariantValueId = s.VariantComplex.VariantValueId,
+                Value = s.VariantComplex.VariantValue.Value
+            })
+        }).ToArrayAsync();
 
-        // var data = await _ivsql.Select(x=> new InventoryDTO {
-        //     x.InventoryId,
-        //     x.ProductId,
-        //     x.Barcode,
-        //     x.Sku,
-        //     x.CurrentQty
-        // }).ToArrayAsync();;
-        return JsonConvert.SerializeObject(data);
-        // return iv;
+        //return JsonConvert.SerializeObject(data);
+        return Ok(iv);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Inventory>> GetInventory(String id)
     {
-
-        var _ivsql = db.Inventories.AsQueryable();
-        _ivsql.Where(x=>x.InventoryComplexes.Count(s=>
-            s.VariantComplex.ProductVariant.VariantId == "CT"
-            && s.VariantComplex.VariantValueId == "3IN"
-        ) > 0);
-
-
-        var iv = await _ivsql.Include(x => x.InventoryComplexes)
+        var iv = await db.Inventories.Include(x => x.InventoryComplexes)
             .ThenInclude(x => x.VariantComplex.ProductVariant.Variant)
-            .Include(x=>x.InventoryComplexes)
-            .ThenInclude(x=>x.VariantComplex.VariantValue)
-            .Include(x=>x.InventoryComplexes)
-            .ThenInclude(x=>x.VariantComplex.ProductVariant.Product)
+            .Include(x => x.InventoryComplexes)
+            .ThenInclude(x => x.VariantComplex.VariantValue)
+            .Include(x => x.InventoryComplexes)
+            .ThenInclude(x => x.VariantComplex.ProductVariant.Product)
             .FirstOrDefaultAsync(x => x.InventoryId == id);
-        
 
-        if (iv == null)
+        var data = new InventoryDTO
+        {
+            InventoryId = iv.InventoryId,
+            ProductId = iv.ProductId,
+            Barcode = iv.Barcode,
+            Sku = iv.Sku,
+            CurrentQty = iv.CurrentQty,
+            Variants = iv.InventoryComplexes.Select(s => new VariantInfo{
+                VariantId = iv.
+            })
+        };
+
+        if (data == null)
             return NoContent();
 
-        return Ok(iv);
+        return Ok(data);
     }
 
     [HttpPost]
@@ -139,8 +137,6 @@ public class InventoryController : ControllerBase
         iv.ProductId = inventory.ProductId;
         iv.InventoryId = inventory.InventoryId;
 
-        //이거 두 개를 그냥 따로 빼면, 이걸 가지고 update도 가능하겠는데....?
-        //한다면 inventory를 반환하고, 호출한 곳에서 반환값을 Add 및 Savechanges 하면 될 듯...
         db.Inventories.Add(iv);
         await db.SaveChangesAsync();
     }

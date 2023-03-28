@@ -83,13 +83,14 @@ public class InventoryDTO
     public int? CurrentQty { get; set; }
 
     public string? ProductId { get; set; }
-    public IEnumerable<VariantInfo?>?  Variants {get;set;}
+    public IEnumerable<VariantInfo?>? Variants { get; set; }
 }
 
 
-public class VariantInfo {
-    public string? VariantId{get;set;}
-    public string VariantName{get;set;}
-    public string Value{get;set;}
-        public string? VariantValueId{get;set;}
+public class VariantInfo
+{
+    public string? VariantId { get; set; }
+    public string VariantName { get; set; }
+    public string Value { get; set; }
+    public string? VariantValueId { get; set; }
 }
