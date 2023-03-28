@@ -72,7 +72,7 @@ public partial class ProductVariantComplexDTO
     public string? VariantValueId { get; set; }
 }
 
-public partial class InventoryDTO
+public class InventoryDTO
 {
     public string InventoryId { get; set; } = null!;
 
@@ -83,5 +83,13 @@ public partial class InventoryDTO
     public int? CurrentQty { get; set; }
 
     public string? ProductId { get; set; }
-    public ProductVariant?[]?  pvariants {get;set;}
+    public IEnumerable<VariantInfo?>?  Variants {get;set;}
+}
+
+
+public class VariantInfo {
+    public string? VariantId{get;set;}
+    public string VariantName{get;set;}
+    public string Value{get;set;}
+        public string? VariantValueId{get;set;}
 }

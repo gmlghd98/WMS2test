@@ -21,13 +21,15 @@ public class ProductController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
     {
-        return await db.Products.Include(x=>x.ProductVariants).ThenInclude(x => x.Variant).ToListAsync();
+        //return await db.Products.ToListAsync();
+        return await db.Products.Include(x => x.ProductCategory).ToListAsync();
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Product>> GetProduct(String id)
     {
-        var item = await (db.Products.Include(x=>x.ProductVariants)).ThenInclude(x=>x.Variant).FirstOrDefaultAsync(x=>x.ProductId == id);
+        //var item = await (db.Products.Include(x=>x.ProductVariants)).ThenInclude(x=>x.Variant).FirstOrDefaultAsync(x=>x.ProductId == id);
+        var item = await db.Products.FindAsync(id);
         if (item == null)
             return NotFound();
 

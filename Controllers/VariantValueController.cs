@@ -18,13 +18,18 @@ public class VariantValueController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<VariantValue>>> GetVariantValues()
     {
-        return await db.VariantValues.ToListAsync();
+        //return await db.VariantValues.ToListAsync();
+        return await db.VariantValues.
+        Include(x => x.Variant).ToListAsync();
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<VariantValue>> GetVariantValue(String id)
     {
-        var vv = await db.VariantValues.FindAsync(id);
+        //var vv = await db.VariantValues.FindAsync(id);
+        //var vv = await db.VariantValues.Include(x => x.Variant).FirstOrDefaultAsync(x => x.VariantValueId == id);
+        var vv = await db.VariantValues.
+        Include(x=> x.Variant).FirstOrDefaultAsync(x => x.VariantValueId == id);
 
         if (vv == null)
             return NotFound();
@@ -69,12 +74,12 @@ public class VariantValueController : ControllerBase
     protected async Task<ActionResult<VariantValue>> VariantValueInsert(VariantValueDTO variantvalue)
     {
         var v = new VariantValue();
-        int[] exampleData = new int[] {10, 20, 30};
+        int[] exampleData = new int[] { 10, 20, 30 };
 
         v.VariantValueId = variantvalue.VariantValueId;
         v.VariantId = variantvalue.VariantId;
         v.Value = variantvalue.Value;
-        
+
         db.VariantValues.Add(v);
         await db.SaveChangesAsync();
         return v;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Models;
 
@@ -13,5 +14,6 @@ public partial class ProductCategory
 
     public string? ParentProductCategoryId { get; set; }
 
+    [JsonIgnore]
     public virtual ICollection<Product> Products { get; } = new List<Product>();
 }

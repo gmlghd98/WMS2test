@@ -18,7 +18,10 @@ public class ProductVariantComplexController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductVariantComplex>>> GetProductVariantComplexes()
     {
-        return await db.ProductVariantComplexes.ToListAsync();
+        //return await db.ProductVariantComplexes.ToListAsync();
+        return await db.ProductVariantComplexes.
+        Include(x => x.VariantValue).ThenInclude(x => x.Variant).
+        Include(x => x.ProductVariant).ThenInclude(x => x.Product).ToListAsync();
     }
 
     [HttpGet("{id}")]
@@ -27,7 +30,10 @@ public class ProductVariantComplexController : ControllerBase
         if (db.ProductVariantComplexes.Select(x => x.VariantComplexId == id) == null)
             return NoContent();
 
-        var pvc = db.ProductVariantComplexes.FindAsync(id);
+        //var pvc = db.ProductVariantComplexes.FindAsync(id);
+        var pvc = db.ProductVariantComplexes.
+        Include(x => x.VariantValue).ThenInclude(x => x.Variant).
+        Include(x=> x.ProductVariant).ThenInclude(x=> x.Product).Where(x => x.VariantComplexId == id);
 
         return Ok(pvc);
     }

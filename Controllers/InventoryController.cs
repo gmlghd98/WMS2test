@@ -1,40 +1,88 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using Newtonsoft.Json;
 
 namespace Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class InvetoryController : ControllerBase
+public class InventoryController : ControllerBase
 {
     private readonly Wms2TestContext db;
 
-    public InvetoryController()
+    public InventoryController()
     {
         db = new Wms2TestContext();
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Inventory>>> GetInventories()
+    public async Task<ActionResult<string>> GetInventories()
     {
-        return await db.Inventories.ToListAsync();
+        var _ivsql = db.Inventories.AsQueryable();
+        _ivsql = _ivsql.Where(x=>x.InventoryComplexes.Count(s=>
+            s.VariantComplex.ProductVariant.VariantId == "CT"
+            && s.VariantComplex.VariantValueId == "3IN"
+        ) > 0);
+        //return await db.Inventories.ToListAsync();
+        var iv = await _ivsql
+            .Include(x => x.InventoryComplexes)
+            .ThenInclude(x => x.VariantComplex.ProductVariant.Variant)
+            .Include(x=>x.InventoryComplexes)
+            .ThenInclude(x=>x.VariantComplex.VariantValue)
+            .Include(x=>x.InventoryComplexes)
+            .ThenInclude(x=>x.VariantComplex.ProductVariant.Product)
+            .ToListAsync();
+
+       var data = await _ivsql.Select(x=>new InventoryDTO{
+        InventoryId = x.InventoryId,
+        ProductId = x.ProductId,
+        Barcode = x.Barcode,
+        Sku = x.Sku,
+        CurrentQty = x.CurrentQty,
+        Variants = x.InventoryComplexes.Select(s => new VariantInfo {
+            VariantId = s.VariantComplex.ProductVariant.VariantId,
+            VariantName = s.VariantComplex.ProductVariant.Variant.VariantName,
+            VariantValueId = s.VariantComplex.VariantValueId,
+            Value = s.VariantComplex.VariantValue.Value
+        })
+       }).ToArrayAsync();
+
+        // var data = await _ivsql.Select(x=> new InventoryDTO {
+        //     x.InventoryId,
+        //     x.ProductId,
+        //     x.Barcode,
+        //     x.Sku,
+        //     x.CurrentQty
+        // }).ToArrayAsync();;
+        return JsonConvert.SerializeObject(data);
+        // return iv;
     }
 
     [HttpGet("{id}")]
-    public ActionResult<InventoryDTO> GetInventory(String id)
+    public async Task<ActionResult<Inventory>> GetInventory(String id)
     {
-        var iv = db.Inventories.Include(x=>x.InventoryComplexes).ThenInclude(x=>x.VariantComplex.ProductVariant).FirstOrDefault(x=>x.InventoryId == id);
+
+        var _ivsql = db.Inventories.AsQueryable();
+        _ivsql.Where(x=>x.InventoryComplexes.Count(s=>
+            s.VariantComplex.ProductVariant.VariantId == "CT"
+            && s.VariantComplex.VariantValueId == "3IN"
+        ) > 0);
+
+
+        var iv = await _ivsql.Include(x => x.InventoryComplexes)
+            .ThenInclude(x => x.VariantComplex.ProductVariant.Variant)
+            .Include(x=>x.InventoryComplexes)
+            .ThenInclude(x=>x.VariantComplex.VariantValue)
+            .Include(x=>x.InventoryComplexes)
+            .ThenInclude(x=>x.VariantComplex.ProductVariant.Product)
+            .FirstOrDefaultAsync(x => x.InventoryId == id);
         
+
         if (iv == null)
             return NoContent();
 
-        InventoryDTO _dto = new InventoryDTO{
-            InventoryId = iv.InventoryId,
-            Sku = iv.Sku,
-            pvariants = iv.InventoryComplexes.Select(s=>s.VariantComplex.ProductVariant).ToArray()
-        };
-        return _dto;
+        return Ok(iv);
     }
 
     [HttpPost]

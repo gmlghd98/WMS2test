@@ -18,13 +18,18 @@ public class ProductVariantController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductVariant>>> GetProductVariants()
     {
-        return await db.ProductVariants.ToListAsync();
+        //return await db.ProductVariants.ToListAsync();
+        return await db.ProductVariants.
+        Include(x => x.Variant).Include(x=> x.Product).ToListAsync();
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductVariant>> GetProductVariant(String id)
     {
-        var pv = await db.ProductVariants.FindAsync(id);
+        //var pv = await db.ProductVariants.FindAsync(id);
+        var pv = await db.ProductVariants.
+        Include(x => x.Variant).Include(x => x.Product).
+        FirstOrDefaultAsync(x => x.ProductVariantId == id);
 
         if (pv == null)
             return NotFound();

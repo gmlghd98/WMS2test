@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 namespace Models;
 
 public partial class Variant
@@ -11,7 +11,8 @@ public partial class Variant
 
     public int? DisplayPosition { get; set; }
 
+    [JsonIgnore]
     public virtual ICollection<ProductVariant> ProductVariants { get; } = new List<ProductVariant>();
-
+    [JsonIgnore]
     public virtual ICollection<VariantValue> VariantValues { get; } = new List<VariantValue>();
 }
